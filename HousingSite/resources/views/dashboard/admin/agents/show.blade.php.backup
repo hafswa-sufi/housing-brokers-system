@@ -1,0 +1,81 @@
+@extends('admin.layouts.admin')
+
+@section('title','Agent details')
+
+@section('content')
+<h2>Agent: {{ optional($agent->user)->name ?? '—' }}</h2>
+
+<div class="row">
+  <div class="col-md-8">
+    <div class="card mb-3">
+      <div class="card-body">
+        <h5>Profile</h5>
+        <p><strong>Email:</strong> {{ optional($agent->user)->email ?? '—' }}</p>
+        <p><strong>Company:</strong> {{ $agent->company }}</p>
+        <p><strong>Phone:</strong> {{ $agent->phone }}</p>
+        <p><strong>License:</strong> {{ $agent->license_number }}</p>
+        @if($agent->id_document_url)
+          <p><strong>ID Document:</strong> <a href="{{ $agent->id_document_url }}" target="_blank">View</a></p>
+        @endif
+        <p><strong>Bio:</strong><br>{{ $agent->bio }}</p>
+
+        <p><strong>Verification status:</strong> {{ ucfirst($agent->verification_status) }}</p>
+        <p><strong>Average rating:</strong> {{ $agent->rating_avg ?? 'N/A' }}</p>
+
+        @if($agent->blacklist)
+          <hr>
+          <h6 class="text-danger">Blacklist record</h6>
+          <p><strong>Reason:</strong> {{ $agent->blacklist->reason }}</p>
+          <p><strong>Actioned by:</strong> {{ optional($agent->blacklist->actionedBy)->name ?? '-' }}</p>
+          <p><strong>When:</strong> {{ optional($agent->blacklist->blacklisted_at)->toDayDateTimeString() ?? $agent->blacklist->created_at->toDayDateTimeString() }}</p>
+        @endif
+      </div>
+    </div>
+
+    <div class="card mb-3">
+      <div class="card-body">
+        <h5>Review Verification</h5>
+        <form action="{{ route('admin.agents.review', $agent) }}" method="post">
+          @csrf
+          <div class="mb-2">
+            <label for="note" class="form-label">Notes (optional)</label>
+            <textarea name="note" id="note" class="form-control" rows="3"></textarea>
+          </div>
+          <button name="action" value="approve" class="btn btn-success">Approve</button>
+          <button name="action" value="reject" class="btn btn-danger">Reject</button>
+        </form>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-body">
+        <h5>Blacklist / Un-blacklist</h5>
+        <form action="{{ route('admin.agents.blacklist', $agent) }}" method="post">
+          @csrf
+          <div class="mb-2 form-check">
+            <input class="form-check-input" type="checkbox" id="blacklist" name="blacklist" value="1" {{ $agent->blacklist ? 'checked' : '' }}>
+            <label class="form-check-label" for="blacklist">Blacklisted</label>
+          </div>
+          <div class="mb-2">
+            <label for="reason" class="form-label">Reason (if blacklisting)</label>
+            <textarea name="reason" id="reason" class="form-control" rows="2">{{ $agent->blacklist->reason ?? '' }}</textarea>
+          </div>
+          <button class="btn btn-warning">Save</button>
+        </form>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="col-md-4">
+    <div class="card">
+      <div class="card-body">
+        <h5>Other</h5>
+        <p>Joined: {{ $agent->created_at ? $agent->created_at->toDayDateTimeString() : '-' }}</p>
+        <p>Listings: {{ $agent->listings->count() }}</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+@endsection

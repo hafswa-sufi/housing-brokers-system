@@ -1,0 +1,63 @@
+@extends('admin.layouts.admin')
+
+@section('title','Agents')
+
+@section('content')
+<div class="d-flex justify-content-between mb-3">
+  <h2>Agents</h2>
+  <form class="d-flex" method="get">
+    <input name="q" class="form-control me-2" placeholder="Search by name, email, company, license" value="{{ $q ?? '' }}">
+    <select name="status" class="form-select me-2">
+      <option value="">All statuses</option>
+      <option value="pending" {{ (isset($status) && $status=='pending') ? 'selected' : '' }}>Pending</option>
+      <option value="approved" {{ (isset($status) && $status=='approved') ? 'selected' : '' }}>Approved</option>
+      <option value="rejected" {{ (isset($status) && $status=='rejected') ? 'selected' : '' }}>Rejected</option>
+    </select>
+    <button class="btn btn-primary">Filter</button>
+  </form>
+</div>
+
+<table class="table table-striped">
+  <thead>
+    <tr>
+      <th>Agent</th>
+      <th>Company</th>
+      <th>Phone</th>
+      <th>License</th>
+      <th>Status</th>
+      <th>Blacklisted</th>
+      <th>Joined</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    @foreach($agents as $agent)
+      <tr>
+        <td>
+          <strong>{{ optional($agent->user)->name ?? '—' }}</strong><br>
+          <small>{{ optional($agent->user)->email ?? '—' }}</small>
+        </td>
+        <td>{{ $agent->company }}</td>
+        <td>{{ $agent->phone }}</td>
+        <td>{{ $agent->license_number }}</td>
+        <td>
+          <span class="badge {{ $agent->verification_status == 'pending' ? 'bg-secondary' : ($agent->verification_status=='approved' ? 'bg-success' : 'bg-danger') }}">
+            {{ ucfirst($agent->verification_status) }}
+          </span>
+        </td>
+        <td>
+          @if($agent->blacklist)
+            <span class="badge bg-danger">Yes</span>
+          @else
+            <span class="badge bg-success">No</span>
+          @endif
+        </td>
+        <td>{{ $agent->created_at ? $agent->created_at->format('Y-m-d') : '-' }}</td>
+        <td><a href="{{ route('admin.agents.show', $agent) }}" class="btn btn-sm btn-outline-primary">View</a></td>
+      </tr>
+    @endforeach
+  </tbody>
+</table>
+
+{{ $agents->links() }}
+@endsection
